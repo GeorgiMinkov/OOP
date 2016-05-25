@@ -8,7 +8,13 @@ protected:
 	Filter *filterChain;
 	size_t numberOfFilters;
 
+	void copyFilters(const Filter *filterChain, const size_t &numberOfFilters);
+	void resize(size_t newSize); // да пренапиша ли логиката, така че да имам контейнер (sizeContent, currentSize)
 public:
+	FilterChain();
+	FilterChain(const FilterChain &other);
+	FilterChain(const Filter *filterChain, const size_t &numberOfFilters);
+	~FilterChain();
 
 	// предефинирани оператори
 	FilterChain &operator=(const FilterChain &other);
@@ -22,6 +28,6 @@ public:
 	friend FilterChain operator|(const FilterChain &left, const Filter &right);
 	friend FilterChain operator+(const FilterChain &left, const FilterChain &right);
 	 
-	FilterChain &operator[](const int &index) const; // провери дали с или без &
-	FilterChain &operator[](const char *text) const;
+	Filter &operator[](const int &index) const; // провери дали с или без &
+	Filter &operator[](const char *text) const;
 };

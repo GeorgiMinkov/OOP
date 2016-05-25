@@ -6,12 +6,19 @@
 
 int main()
 {
-	Filter fil;
-	fil.closeOpenFiles();
+	Filter other("asdasda\nsda\nsd ", "newFile.txt", "newFile.txt");  //Защо показва, че не се е отворил файлът за запис
 
-	fil.inputFromCommandLine();
+	Filter fil(other);
 
-	std::cout << fil;
+	fil.inputFromCommandLine("TestFile.txt");
+
+	// fil.countEachWord(); Провери дали ще яде последната дума
+
+	fil.findWordLine("sda");
+
+	std::cout << fil << std::endl;
+
+
     return 0;
 }
 

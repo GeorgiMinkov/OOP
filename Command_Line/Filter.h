@@ -20,12 +20,14 @@ public:
 	// Конструктури
 	Filter();
 	Filter(const Filter &other);
-	Filter(std::string text, std::string inputFileName, std::string outputFileName, std::ifstream inputFile, std::ostream outputFile); // Параметри
+	Filter(std::string text, std::string inputFileName, std::string outputFileName); // Параметри
 	~Filter();
 
-	void setText(const std::string text); // Въвежда текста в полетата на класа
+	void setTextToAllFields(const std::string text, const std::string fileName); // Въвежда текста в полетата на класа
 
-	void inputFromCommandLine(); // вход чрез cmd и свързване със setText
+	std::string getText() const;
+
+	void inputFromCommandLine(const std::string fileName); // вход чрез cmd и свързване със setTextToAllFields
 	void openFiles(); // Отваря двата потока
 	void closeOpenFiles(); // Затваря файловете
 	// Предефенирани оператори

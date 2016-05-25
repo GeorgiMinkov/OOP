@@ -28,9 +28,11 @@ Filter::Filter(const Filter & other)
 	this->copyElemets(other);
 }
 
-Filter::Filter(std::string text, std::string inputFileName, std::string outputFileName, std::ifstream inputFile, std::ostream outputFile)
+Filter::Filter(std::string text, std::string inputFileName, std::string outputFileName)
 {
 	this->text = text;
+
+	//this->setTextToAllFields(text, outputFileName);
 
 	this->inputFileName = inputFileName;
 	// При конструктурът какво трябва да се отваря ifstream-ът или ofstream-ът
@@ -41,6 +43,7 @@ Filter::Filter(std::string text, std::string inputFileName, std::string outputFi
 	this->outputFile.open(outputFileName);
 
 	// this->copyElemets(); Използвай това, ако всичко трябва да се отвори
+	this->setTextToAllFields(text, outputFileName);
 }
 
 Filter::~Filter()
@@ -48,9 +51,15 @@ Filter::~Filter()
 	this->closeOpenFiles();
 }
 
-void Filter::setText(const std::string text)
+void Filter::setTextToAllFields(const std::string text, const std::string fileName)
 {
 	this->text = text;
+
+	this->inputFileName = fileName;
+
+	this->outputFileName = fileName;
+
+	this->openFiles();
 
 	if (this->outputFile.good())
 	{
@@ -62,7 +71,12 @@ void Filter::setText(const std::string text)
 	}
 }
 
-void Filter::inputFromCommandLine()
+std::string Filter::getText() const
+{
+	return this->text;
+}
+
+void Filter::inputFromCommandLine(const std::string fileName)
 {
 	std::string str;
 	std::string strText;
@@ -72,7 +86,7 @@ void Filter::inputFromCommandLine()
 		strText += str + "\n";
 	}
 
-	this->setText(strText);
+	this->setTextToAllFields(strText, fileName);
 }
 
 void Filter::openFiles()
@@ -191,7 +205,7 @@ void Filter::countEachWord() const // 5
 
 	sort(wordHolder.begin(), wordHolder.end());
 
-	size_t countWord = 1;
+	size_t countWord = 0;
 	word = wordHolder[0];
 
 	for (size_t i = 0; i < wordHolder.size(); i++)
@@ -246,7 +260,7 @@ Filter & Filter::operator+=(char chararcter)
 {
 	// TODO: insert return statement here
 
-	this->setText(this->text + std::to_string(chararcter));
+	this->setTextToAllFields(this->text + std::to_string(chararcter), this->outputFileName);
 
 	return *this;
 }
@@ -256,7 +270,7 @@ Filter & Filter::operator+=(char * str)
 	// TODO: insert return statement here
 	if (str != nullptr)
 	{
-		this->setText(this->text + (std::string)str);
+		this->setTextToAllFields(this->text + (std::string)str, this->outputFileName);
 	}
 
 	return *this;
@@ -276,12 +290,14 @@ std::istream & operator >> (std::istream &in, Filter & source)
 	std::string str;
 	std::string strText;
 
-	while (getline(std::cin, str))
+	while (getline(in, str))
 	{
 		strText += str + "\n";
 	}
 
-	source.setText(strText);
-	// Тук трябва ли да посоча файлове за отваряне?
+	std::cout << "Enter file name: "; 
+	in >> str; // Защо го прескача
+
+	source.setTextToAllFields(strText, str);
 	return in;
 }

@@ -4,17 +4,23 @@
 #include<fstream>
 #include<vector>
 #include<algorithm>
+#include<Windows.h>
+#include<sstream>
 
 class Filter
 {
-	std::string text;
+protected:
+	std::string text; // Save all text
 
 	std::string inputFileName;
-	std::ifstream inputFile;
-	std::string outputFileName;
-	std::ofstream outputFile;
+	std::ifstream inputFile; // read from file
+
+	std::string outputFileName; 
+	std::ofstream outputFile; // save to file
 
 	void copyElemets(const Filter &other);
+	
+	
 
 public:
 	// Конструктури
@@ -22,6 +28,8 @@ public:
 	Filter(const Filter &other);
 	Filter(std::string text, std::string inputFileName, std::string outputFileName); // Параметри
 	~Filter();
+	void creatFileForWrite();
+	void creatFileForRead();
 
 	void setTextToAllFields(const std::string text, const std::string fileName); // Въвежда текста в полетата на класа
 
@@ -31,15 +39,6 @@ public:
 	void openFiles(); // Отваря двата потока
 	void closeOpenFiles(); // Затваря файловете
 	// Предефенирани оператори
-	/*
-	operator=  -стандартен
-		operator== -сравнява два филтъра по стринга който филтрират
-		operator!= -обратното на ==
-		operator<< -записва низът за филтриране в поток(низ за филтриране - това което се филтрира от текста)
-		operator >> -чете си низът за филтриране от поток(низ за филтриране - това което се филтрира от текста)
-		operator+= -десен аргумент char добавя аргумента към края на низът за филтриране
-		operator+= -десен аргумент char* добавя дадения низ към края на низът за филтриране
-		operator|  -два аргумента Filter връща FilterChain съставен от аргументите си*/
 
 	Filter &operator=(const Filter &other);
 
@@ -53,14 +52,12 @@ public:
 	friend std::istream &operator >> (std::istream &in, Filter &source); // Какво трябва да представлява това тук, както функцията ми enterFromCommandLine ли?
 
 	Filter &operator+=(char chararcter);
-	Filter &operator+=(char *str);
-
-	//FilterChain &operator|(const Filter &right); Как трябва да изглежда	
+	Filter &operator+=(char *str);	
 
 	// 5-те оператора за филтриране
 	void findWordLine(std::string word);
 	void smallToUpper();
 	void upperToSmall();
-	void colorSpecificWord(std::string word);
+	void colorSpecificSymbols(std::string word) const;
 	void countEachWord() const;
 };

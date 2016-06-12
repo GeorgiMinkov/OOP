@@ -8,10 +8,18 @@ void Filter::copyElemets(const Filter & other)
 	this->inputFileName = other.inputFileName;
 
 	this->outputFileName = other.outputFileName;
+}
 
-	this->inputFile.open(this->inputFileName);
-
+void Filter::creatFileForWrite()
+{
 	this->outputFile.open(this->outputFileName);
+	this->outputFile.close();
+}
+
+void Filter::creatFileForRead()
+{
+	this->inputFile.open(this->inputFileName);
+	this->inputFile.close();
 }
 
 Filter::Filter()
@@ -30,19 +38,6 @@ Filter::Filter(const Filter & other)
 
 Filter::Filter(std::string text, std::string inputFileName, std::string outputFileName)
 {
-	this->text = text;
-
-	//this->setTextToAllFields(text, outputFileName);
-
-	this->inputFileName = inputFileName;
-	// При конструктурът какво трябва да се отваря ifstream-ът или ofstream-ът
-	this->inputFile.open(inputFileName);
-
-	this->outputFileName = outputFileName;
-	// При конструктурът какво трябва да се отваря ifstream-ът или ofstream-ът
-	this->outputFile.open(outputFileName);
-
-	// this->copyElemets(); Използвай това, ако всичко трябва да се отвори
 	this->setTextToAllFields(text, outputFileName);
 }
 
@@ -59,16 +54,19 @@ void Filter::setTextToAllFields(const std::string text, const std::string fileNa
 
 	this->outputFileName = fileName;
 
-	this->openFiles();
+	this->outputFile.open(this->outputFileName);
 
-	if (this->outputFile.good())
+	if (this->outputFile.is_open())
 	{
 		this->outputFile << text;
 	}
 	else
 	{
-		std::cout << "File for write is not open.\n";
+		// отвори и запиши
+		this->outputFile.open(outputFileName);
+		this->outputFile << text;
 	}
+	this->outputFile.close();
 }
 
 std::string Filter::getText() const
@@ -89,6 +87,7 @@ void Filter::inputFromCommandLine(const std::string fileName)
 	this->setTextToAllFields(strText, fileName);
 }
 
+// Delete
 void Filter::openFiles()
 {
 	this->inputFile.open(this->inputFileName);
@@ -101,16 +100,20 @@ void Filter::findWordLine(std::string word) // 1
 {
 	std::string thisLine;
 	bool check = false;
-	
+	this->inputFile.open(this->inputFileName);
+
 	if (this->inputFile.good())
 	{
-		while (getline(this->inputFile, thisLine).good())
+		std::istringstream f(this->text);
+		std::string line;
+		while (std::getline(f, line)) 
 		{
-			if (thisLine == word)
+			if (line.find(word) != -1)
 			{
+				std::cout << line << std::endl;
 				check = true;
-				std::cout << thisLine;
 			}
+		
 		}
 	}
 	else
@@ -126,52 +129,91 @@ void Filter::findWordLine(std::string word) // 1
 
 void Filter::smallToUpper() // 2
 {
+	this->outputFile.open(this->outputFileName, std::fstream::out | std::fstream::trunc); // За да изтрие текущото съдържание на файла
+
 	if (this->outputFile.good())
 	{
+		for (size_t i = 0; i < this->text.length(); i++) 
+		{
+			if (this->text[i] >= 'a' && this->text[i] <= 'z')
+			{
+				this->text[i] = toupper(this->text[i]);
+			}
+		}
+
+		this->outputFile << this->text;
+		this->outputFile.close();
+	}
+	else
+	{
+		std::cout << "No file is open to write. Will load exist document.\n";
+		this->outputFile.open(this->outputFileName, std::fstream::out | std::fstream::trunc);
+
 		for (size_t i = 0; i < this->text.length(); i++)
 		{
 			if (this->text[i] >= 'a' && this->text[i] <= 'z')
 			{
-				this->text[i] -= 'a';
+				this->text[i] = toupper(this->text[i]);
 			}
 		}
-	}
-	else
-	{
-		std::cout << "No file is open to write\n";
+
+		this->outputFile << this->text;
+		this->outputFile.close();
 	}
 }
 
 void Filter::upperToSmall() // 3
 {
+	this->outputFile.open(this->outputFileName, std::fstream::out | std::fstream::trunc);
+
 	if (this->outputFile.good())
 	{
-		for (size_t i = 0; i < this->text.length(); i++)
-		{
-			if (this->text[i] >= 'a' && this->text[i] <= 'z')
-			{
-				this->text[i] += 'a';
-			}
-		}
+		std::transform(this->text.begin(), this->text.end(), this->text.begin(), ::tolower);
+
+		this->outputFile << this->text;
+		this->outputFile.close();
 	}
 	else
 	{
 		std::cout << "No file is open to write\n";
+		this->outputFile.open(this->outputFileName, std::fstream::out | std::fstream::trunc);
+
+		std::transform(this->text.begin(), this->text.end(), this->text.begin(), ::tolower);
+
+		this->outputFile << this->text;
+		this->outputFile.close();
 	}
 }
 
-void Filter::colorSpecificWord(std::string word) // 4
+void Filter::colorSpecificSymbols(std::string word) const // 4 Тъй като NotePad няма оцветяване на текст той ще бъде само визуализиран оцветен
 {
-	std::string oneWord;
-	bool check = false;
+	HANDLE hConsole;
+	int k = 0;
+			
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	if (this->outputFile.good())
+	bool checkIT = false;
+	for (size_t i = 0; i < this->text.length(); i++)
 	{
-		// Как може да се оцвети специфична площ, като се анализира текст?
-	}
-	else
-	{
-		std::cout << "No file is open.\n";
+		while (this->text[i] == word[k] && k < word.length())
+		{
+			SetConsoleTextAttribute(hConsole, 10);
+			std::cout << this->text[i];
+			i++;
+			k++;
+			checkIT = true;
+		}
+		k = 0;
+		if (checkIT)
+		{
+			i--;
+			checkIT = false;
+		}
+		else
+		{
+			SetConsoleTextAttribute(hConsole, 15);
+			std::cout << this->text[i];
+		}
 	}
 }
 
@@ -235,7 +277,7 @@ void Filter::closeOpenFiles()
 // Предефинирани оператори
 Filter & Filter::operator=(const Filter & other)
 {
-	// TODO: insert return statement here
+	// TODO: =
 	if (this != &other)
 	{
 		this->closeOpenFiles();
@@ -258,16 +300,19 @@ bool Filter::operator!=(const Filter & other) const
 
 Filter & Filter::operator+=(char chararcter)
 {
-	// TODO: insert return statement here
-
-	this->setTextToAllFields(this->text + std::to_string(chararcter), this->outputFileName);
+	// TODO: +=
+	std::stringstream ss;
+	std::string s;
+	ss << chararcter;
+	ss >> s;
+	this->setTextToAllFields(this->text + s, this->outputFileName);
 
 	return *this;
 }
 
 Filter & Filter::operator+=(char * str)
 {
-	// TODO: insert return statement here
+	// TODO: +=
 	if (str != nullptr)
 	{
 		this->setTextToAllFields(this->text + (std::string)str, this->outputFileName);
@@ -287,17 +332,11 @@ std::ostream & operator<<(std::ostream &out, const Filter & source)
 std::istream & operator >> (std::istream &in, Filter & source)
 {
 	// TODO: insert return statement here
-	std::string str;
-	std::string strText;
-
-	while (getline(in, str))
-	{
-		strText += str + "\n";
-	}
-
+	std::string fileName;
 	std::cout << "Enter file name: "; 
-	in >> str; // Защо го прескача
+	in >> fileName; // Подаване на име на файла
 
-	source.setTextToAllFields(strText, str);
+	source.inputFromCommandLine(fileName + ".txt");
+
 	return in;
 }

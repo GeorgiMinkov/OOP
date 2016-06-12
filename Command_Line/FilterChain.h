@@ -6,14 +6,17 @@ class FilterChain
 {
 protected:
 	Filter *filterChain;
-	size_t numberOfFilters;
+	size_t currentNumberOfFilters;
+	size_t capacity;
 
-	void copyFilters(const Filter *filterChain, const size_t &numberOfFilters);
-	void resize(size_t newSize); // да пренапиша ли логиката, така че да имам контейнер (sizeContent, currentSize)
+	void copyFilters(const Filter *filterChain, const size_t &currentNumberOfFilters, const size_t &capacity);
+	void resize(); // да пренапиша ли логиката, така че да имам контейнер (sizeContent, currentSize)
+
+	bool isFull() const;
 public:
 	FilterChain();
 	FilterChain(const FilterChain &other);
-	FilterChain(const Filter *filterChain, const size_t &numberOfFilters);
+	FilterChain(const Filter *filterChain, const size_t &currentNumberOfFilters, const size_t &capacity);
 	~FilterChain();
 
 	// предефинирани оператори
